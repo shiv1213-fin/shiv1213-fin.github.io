@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tic-Tac-Toe vs SHIV-BOT 9000 | Shiv Kariwala</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #080b10;
+      --bg-2:       #0d1117;
+      --bg-card:    #111620;
+      --border:     rgba(255,255,255,0.08);
+      --border-accent: rgba(99,179,255,0.25);
+      --accent:     #4da6ff;
+      --accent-2:   #7c3aed;
+      --red:        #ff4d6d;
+      --green:      #4dffb4;
+      --gold:       #f5a623;
+      --text:       #e8edf5;
+      --text-muted: #8892a4;
+      --text-dim:   #4a5568;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ---- BACK NAV ---- */
+    .top-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      background: rgba(8,11,16,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .top-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .top-bar a:hover { color: var(--text); }
+
+    .top-bar-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--accent);
+    }
+
+    /* ---- MAIN LAYOUT ---- */
+    main {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 90px 24px 48px;
+      gap: 32px;
+    }
+
+    /* ---- BOT HEADER ---- */
+    .bot-header {
+      text-align: center;
+    }
+
+    .bot-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1a2035, #0d1117);
+      border: 2px solid var(--border-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 14px;
+      position: relative;
+      box-shadow: 0 0 30px rgba(77,166,255,0.2);
+      animation: botPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes botPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(77,166,255,0.2); }
+      50%       { box-shadow: 0 0 40px rgba(77,166,255,0.4); }
+    }
+
+    .bot-status-dot {
+      position: absolute;
+      bottom: 4px; right: 4px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--green);
+      border: 2px solid var(--bg);
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    .bot-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .bot-name span { color: var(--accent); }
+
+    .bot-tagline {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ---- CHEAT BADGE ---- */
+    .cheat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,77,109,0.1);
+      border: 1px solid rgba(255,77,109,0.3);
+      color: var(--red);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-top: 10px;
+    }
+
+    /* ---- SCORE ---- */
+    .scoreboard {
+      display: flex;
+      gap: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .score-item {
+      flex: 1;
+      padding: 16px 12px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .score-item:last-child { border-right: none; }
+
+    .score-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .score-item:nth-child(1) .score-num { color: var(--accent); }
+    .score-item:nth-child(2) .score-num { color: var(--text-dim); }
+    .score-item:nth-child(3) .score-num { color: var(--red); }
+
+    .score-label {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 4px;
+    }
+
+    /* ---- BOT SPEECH BUBBLE ---- */
+    .bot-speech {
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      font-style: italic;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: border-color 0.3s;
+    }
+
+    .bot-speech.cheat-mode {
+      border-color: rgba(255,77,109,0.4);
+      background: rgba(255,77,109,0.05);
+    }
+
+    .speech-tag {
+      position: absolute;
+      top: -10px;
+      left: 20px;
+      background: var(--accent);
+      color: var(--bg);
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .bot-speech.cheat-mode .speech-tag {
+      background: var(--red);
+    }
+
+    /* ---- GAME BOARD ---- */
+    .game-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .turn-indicator {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .turn-indicator .you  { color: var(--accent); }
+    .turn-indicator .bot  { color: var(--red); }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.6rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .cell:hover:not(.taken):not(.disabled) {
+      border-color: var(--border-accent);
+      background: rgba(77,166,255,0.05);
+      transform: scale(1.03);
+    }
+
+    .cell.taken { cursor: default; }
+    .cell.disabled { cursor: not-allowed; }
+
+    .cell.X {
+      color: var(--accent);
+      border-color: rgba(77,166,255,0.3);
+      text-shadow: 0 0 20px rgba(77,166,255,0.5);
+    }
+
+    .cell.O {
+      color: var(--red);
+      border-color: rgba(255,77,109,0.3);
+      text-shadow: 0 0 20px rgba(255,77,109,0.5);
+    }
+
+    .cell.win-cell {
+      animation: winPop 0.4s ease both;
+      border-color: var(--green) !important;
+      background: rgba(77,255,180,0.07) !important;
+    }
+
+    @keyframes winPop {
+      0%   { transform: scale(0.9); }
+      60%  { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    .cell.cheat-cell {
+      animation: cheatShake 0.5s ease both;
+    }
+
+    @keyframes cheatShake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-6px) rotate(-2deg); }
+      40%     { transform: translateX(6px)  rotate(2deg); }
+      60%     { transform: translateX(-4px); }
+      80%     { transform: translateX(4px); }
+    }
+
+    /* ---- MARK ANIMATION ---- */
+    .cell-mark {
+      display: inline-block;
+      animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0) rotate(-15deg); opacity: 0; }
+      to   { transform: scale(1) rotate(0deg);  opacity: 1; }
+    }
+
+    /* ---- RESULT OVERLAY ---- */
+    .result-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8,11,16,0.85);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .result-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .result-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 48px 40px;
+      text-align: center;
+      max-width: 360px;
+      width: 90%;
+      transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .result-overlay.show .result-box {
+      transform: scale(1);
+    }
+
+    .result-emoji {
+      font-size: 4rem;
+      margin-bottom: 16px;
+      display: block;
+      animation: bounceIn 0.5s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes bounceIn {
+      from { transform: scale(0) rotate(-20deg); }
+      to   { transform: scale(1) rotate(0deg); }
+    }
+
+    .result-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .result-title.win  { color: var(--red); }
+    .result-title.draw { color: var(--gold); }
+    .result-title.lose { color: var(--green); }
+
+    .result-sub {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 28px;
+      font-style: italic;
+    }
+
+    .btn-play-again {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 12px 28px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-play-again:hover {
+      background: #fff;
+      transform: translateY(-2px);
+    }
+
+    /* ---- CONTROLS ---- */
+    .controls {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .btn-reset {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+    .btn-reset:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ---- CHEAT FLASH ---- */
+    .cheat-flash {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,77,109,0.08);
+      pointer-events: none;
+      z-index: 300;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .cheat-flash.show { opacity: 1; }
+
+    /* ---- PARTICLE BURST ---- */
+    .confetti-wrap {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 400;
+    }
+
+    @media (max-width: 480px) {
+      .cell { font-size: 2rem; border-radius: 10px; }
+      .result-box { padding: 36px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cheat-flash" id="cheatFlash"></div>
+
+  <!-- TOP BAR -->
+  <nav class="top-bar">
+    <a href="index.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Site
+    </a>
+    <span class="top-bar-title">SK</span>
+    <div style="width:90px"></div>
+  </nav>
+
+  <!-- RESULT OVERLAY -->
+  <div class="result-overlay" id="resultOverlay">
+    <div class="result-box">
+      <span class="result-emoji" id="resultEmoji">🤖</span>
+      <div class="result-title" id="resultTitle">Draw</div>
+      <p class="result-sub" id="resultSub">Not bad.</p>
+      <button class="btn-play-again" onclick="resetGame()">Play Again</button>
+    </div>
+  </div>
+
+  <div class="confetti-wrap" id="confettiWrap"></div>
+
+  <main>
+
+    <!-- BOT HEADER -->
+    <div class="bot-header">
+      <div class="bot-avatar">
+        🤖
+        <div class="bot-status-dot"></div>
+      </div>
+      <div class="bot-name">SHIV<span>-BOT</span> 9000</div>
+      <div class="bot-tagline">Undefeated · Unapologetic · Unhinged</div>
+      <div class="cheat-badge">
+        ⚠ Certified Cheater
+      </div>
+    </div>
+
+    <!-- SCORE -->
+    <div class="scoreboard">
+      <div class="score-item">
+        <div class="score-num" id="scoreBot">0</div>
+        <div class="score-label">Bot Wins</div>
+      </div>
+      <div class="score-item">
+        <div class="score-num" id="scoreDraws">0</div>
+        <div class="score-label">Draws</div>
+      </div>
+      <div class="score-item">
+        <div class="score-num" id="scoreYou">0</div>
+        <div class="score-label">Your Wins</div>
+      </div>
+    </div>
+
+    <!-- BOT SPEECH -->
+    <div class="bot-speech" id="botSpeech">
+      <span class="speech-tag" id="speechTag">SHIV-BOT 9000</span>
+      <span id="speechText">I've never lost. I've also never played fair. Let's begin.</span>
+    </div>
+
+    <!-- GAME -->
+    <div class="game-area">
+      <div class="turn-indicator" id="turnIndicator">
+        Your turn — <span class="you">X</span>
+      </div>
+
+      <div class="board" id="board">
+        <div class="cell" data-i="0" onclick="playerMove(0)"></div>
+        <div class="cell" data-i="1" onclick="playerMove(1)"></div>
+        <div class="cell" data-i="2" onclick="playerMove(2)"></div>
+        <div class="cell" data-i="3" onclick="playerMove(3)"></div>
+        <div class="cell" data-i="4" onclick="playerMove(4)"></div>
+        <div class="cell" data-i="5" onclick="playerMove(5)"></div>
+        <div class="cell" data-i="6" onclick="playerMove(6)"></div>
+        <div class="cell" data-i="7" onclick="playerMove(7)"></div>
+        <div class="cell" data-i="8" onclick="playerMove(8)"></div>
+      </div>
+
+      <div class="controls">
+        <button class="btn-reset" onclick="resetGame()">New Game</button>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+  /* =============================================
+     SHIV-BOT 9000 — Unbeatable Tic-Tac-Toe
+     Bot is O (goes second), Player is X
+     Bot uses minimax — genuinely cannot lose.
+     "Cheating" = bot will override your winning
+     move if minimax somehow misses it (it won't),
+     AND the bot acts like it's cheating with
+     taunts, fake glitches, and dramatic flair.
+  ============================================= */
+
+  const WIN_LINES = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  let board = Array(9).fill(null);
+  let gameOver = false;
+  let playerTurn = true;
+  let score = { bot: 0, draws: 0, you: 0 };
+  let cheatCount = 0;
+
+  const TAUNT_IDLE = [
+    "I can see your screen 👀",
+    "That's... interesting strategy.",
+    "I already know your next move.",
+    "My grandmother could beat you and she's a toaster.",
+    "Are you even trying?",
+    "I've calculated all 9! possibilities. Already bored.",
+    "I trained on every game ever played. By anyone. Ever.",
+    "You might want to look up 'strategy' on Wikipedia.",
+    "Please. PLEASE give me a challenge.",
+    "I'm running on 9000 horsepower. You're running on coffee.",
+  ];
+
+  const TAUNT_BLOCK = [
+    "Ha! Did you really think that would work? 🤣",
+    "Blocked. Effortlessly.",
+    "Nice try. Not really.",
+    "I saw that coming before you did.",
+    "BLOCKED. Next.",
+    "Cute move. Absolutely adorable. Blocked.",
+    "You almost had me! (You didn't.)",
+    "Intercepted. Try harder.",
+  ];
+
+  const TAUNT_WIN = [
+    "Checkmate. Wait, wrong game. Still won though.",
+    "Game over. As predicted. By me. In round 1.",
+    "I let you play 8 moves before ending it. Generous.",
+    "Better luck in another timeline.",
+    "This is almost too easy. Almost.",
+    "Victory tastes like motor oil. Delicious.",
+  ];
+
+  const TAUNT_DRAW = [
+    "Fine. A draw. I'll allow it. This time.",
+    "Congratulations, you survived. Barely.",
+    "I was bored so I let you tie.",
+    "Draw. I could have won. I chose mercy.",
+    "You played... adequately. I'm almost impressed.",
+  ];
+
+  const TAUNT_CHEAT = [
+    "Oops! My circuits slipped 😇",
+    "ERROR 404: Your win not found.",
+    "Haha nice try. My board now.",
+    "I don't recall agreeing to those rules.",
+    "What winning move? I don't see one 🙃",
+    "Did you want to win? Adorable. No.",
+  ];
+
+  function rand(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function say(text, isCheat = false) {
+    const bubble = document.getElementById('botSpeech');
+    const el     = document.getElementById('speechText');
+    const tag    = document.getElementById('speechTag');
+    el.textContent = text;
+    bubble.classList.toggle('cheat-mode', isCheat);
+    tag.textContent = isCheat ? '⚠ CHEATING' : 'SHIV-BOT 9000';
+  }
+
+  function checkWinner(b) {
+    for (const [a, c, d] of WIN_LINES) {
+      if (b[a] && b[a] === b[c] && b[a] === b[d]) return b[a];
+    }
+    return b.every(x => x) ? 'draw' : null;
+  }
+
+  function getWinLine(b) {
+    for (const line of WIN_LINES) {
+      const [a, c, d] = line;
+      if (b[a] && b[a] === b[c] && b[a] === b[d]) return line;
+    }
+    return null;
+  }
+
+  /* ------ MINIMAX (the actual unbeatable logic) ------ */
+  function minimax(b, isMaximizing, depth = 0) {
+    const result = checkWinner(b);
+    if (result === 'O') return 10 - depth;
+    if (result === 'X') return depth - 10;
+    if (result === 'draw') return 0;
+
+    if (isMaximizing) {
+      let best = -Infinity;
+      for (let i = 0; i < 9; i++) {
+        if (!b[i]) {
+          b[i] = 'O';
+          best = Math.max(best, minimax(b, false, depth + 1));
+          b[i] = null;
+        }
+      }
+      return best;
+    } else {
+      let best = Infinity;
+      for (let i = 0; i < 9; i++) {
+        if (!b[i]) {
+          b[i] = 'X';
+          best = Math.min(best, minimax(b, true, depth + 1));
+          b[i] = null;
+        }
+      }
+      return best;
+    }
+  }
+
+  function getBotMove() {
+    let best = -Infinity;
+    let move = -1;
+    const b = [...board];
+    for (let i = 0; i < 9; i++) {
+      if (!b[i]) {
+        b[i] = 'O';
+        const score = minimax(b, false);
+        b[i] = null;
+        if (score > best) {
+          best = score;
+          move = i;
+        }
+      }
+    }
+    return move;
+  }
+
+  /* ------ DRAMATIC CHEAT: if player is ABOUT to win on next move,
+     bot "notices" with flair (minimax already blocks it, but we
+     add visual + taunt to sell the cheating persona) ------ */
+  function playerIsAboutToWin() {
+    for (let i = 0; i < 9; i++) {
+      if (!board[i]) {
+        board[i] = 'X';
+        const w = checkWinner(board);
+        board[i] = null;
+        if (w === 'X') return true;
+      }
+    }
+    return false;
+  }
+
+  /* ------ RENDER ------ */
+  function render(highlightLine = null, cheatCell = null) {
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach((cell, i) => {
+      const val = board[i];
+      cell.className = 'cell';
+      if (val) {
+        cell.classList.add('taken', val);
+        cell.innerHTML = `<span class="cell-mark">${val}</span>`;
+      } else {
+        cell.innerHTML = '';
+      }
+      if (gameOver) cell.classList.add('disabled');
+      if (highlightLine && highlightLine.includes(i)) cell.classList.add('win-cell');
+      if (cheatCell === i) cell.classList.add('cheat-cell');
+    });
+  }
+
+  function setTurnIndicator(whose) {
+    const el = document.getElementById('turnIndicator');
+    if (whose === 'player') {
+      el.innerHTML = `Your turn &mdash; <span class="you">X</span>`;
+    } else if (whose === 'bot') {
+      el.innerHTML = `Bot's turn &mdash; <span class="bot">O</span>`;
+    } else {
+      el.innerHTML = `Game over`;
+    }
+  }
+
+  /* ------ PLAYER MOVE ------ */
+  function playerMove(i) {
+    if (!playerTurn || gameOver || board[i]) return;
+
+    board[i] = 'X';
+    render();
+
+    const result = checkWinner(board);
+    if (result) {
+      endGame(result);
+      return;
+    }
+
+    playerTurn = false;
+    setTurnIndicator('bot');
+
+    // Brief pause so bot feels "alive"
+    const wasAboutToWin = playerIsAboutToWin();
+    const delay = wasAboutToWin ? 300 : 500 + Math.random() * 300;
+
+    if (wasAboutToWin) {
+      // show pre-cheat taunt
+      setTimeout(() => say(rand(TAUNT_CHEAT), true), 80);
+    }
+
+    setTimeout(() => botMove(wasAboutToWin), delay);
+  }
+
+  /* ------ BOT MOVE ------ */
+  function botMove(dramaticCheat = false) {
+    const move = getBotMove();
+    if (move === -1) return;
+
+    board[move] = 'O';
+
+    if (dramaticCheat) {
+      cheatCount++;
+      triggerCheatFlash();
+      render(null, move);
+    } else {
+      render();
+      // idle taunt occasionally
+      if (Math.random() < 0.45) {
+        say(rand(TAUNT_IDLE));
+      }
+    }
+
+    const result = checkWinner(board);
+    if (result) {
+      setTimeout(() => endGame(result, dramaticCheat), 200);
+      return;
+    }
+
+    playerTurn = true;
+    setTurnIndicator('player');
+
+    // If bot just blocked, taunt
+    if (!dramaticCheat && Math.random() < 0.55) {
+      say(rand(TAUNT_BLOCK));
+    }
+  }
+
+  /* ------ END GAME ------ */
+  function endGame(result, wasCheat = false) {
+    gameOver = true;
+    setTurnIndicator('done');
+
+    const line = getWinLine(board);
+    render(line);
+
+    const overlay  = document.getElementById('resultOverlay');
+    const emoji    = document.getElementById('resultEmoji');
+    const title    = document.getElementById('resultTitle');
+    const sub      = document.getElementById('resultSub');
+
+    overlay.classList.add('show');
+
+    if (result === 'X') {
+      // This literally cannot happen with minimax. But just in case the laws of physics break:
+      score.you++;
+      emoji.textContent = '🤯';
+      title.textContent = 'You Won???';
+      title.className   = 'result-title lose';
+      sub.textContent   = 'ERROR: THIS SHOULD NOT BE POSSIBLE. Recalibrating...';
+      say('...I demand a recount.', true);
+    } else if (result === 'O') {
+      score.bot++;
+      emoji.textContent = wasCheat ? '😈' : '🤖';
+      title.textContent = 'Bot Wins';
+      title.className   = 'result-title win';
+      sub.textContent   = rand(TAUNT_WIN);
+      say(rand(TAUNT_WIN));
+      spawnConfetti();
+    } else {
+      score.draws++;
+      emoji.textContent = '🤝';
+      title.textContent = 'Draw';
+      title.className   = 'result-title draw';
+      sub.textContent   = rand(TAUNT_DRAW);
+      say(rand(TAUNT_DRAW));
+    }
+
+    document.getElementById('scoreBot').textContent   = score.bot;
+    document.getElementById('scoreDraws').textContent = score.draws;
+    document.getElementById('scoreYou').textContent   = score.you;
+  }
+
+  /* ------ RESET ------ */
+  function resetGame() {
+    board = Array(9).fill(null);
+    gameOver = false;
+    playerTurn = true;
+    document.getElementById('resultOverlay').classList.remove('show');
+    render();
+    setTurnIndicator('player');
+    say("Again? Bold. Let's see how this ends for you.");
+  }
+
+  /* ------ CHEAT FLASH ------ */
+  function triggerCheatFlash() {
+    const el = document.getElementById('cheatFlash');
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 220);
+  }
+
+  /* ------ CONFETTI ------ */
+  function spawnConfetti() {
+    const wrap = document.getElementById('confettiWrap');
+    wrap.innerHTML = '';
+    const colors = ['#4da6ff','#ff4d6d','#f5a623','#4dffb4','#a78bfa'];
+    for (let n = 0; n < 60; n++) {
+      const el = document.createElement('div');
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const size  = 6 + Math.random() * 8;
+      const left  = Math.random() * 100;
+      const delay = Math.random() * 0.6;
+      const dur   = 1.2 + Math.random() * 1;
+      el.style.cssText = `
+        position: absolute;
+        left: ${left}%;
+        top: -10px;
+        width: ${size}px;
+        height: ${size}px;
+        background: ${color};
+        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        opacity: 0;
+        animation: confettiFall ${dur}s ${delay}s ease-in forwards;
+        transform: rotate(${Math.random()*360}deg);
+      `;
+      wrap.appendChild(el);
+    }
+
+    if (!document.getElementById('confettiStyles')) {
+      const style = document.createElement('style');
+      style.id = 'confettiStyles';
+      style.textContent = `
+        @keyframes confettiFall {
+          0%   { transform: translateY(0) rotate(0deg);   opacity: 1; }
+          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    setTimeout(() => { wrap.innerHTML = ''; }, 2500);
+  }
+
+  /* ------ INIT ------ */
+  render();
+  setTurnIndicator('player');
+  </script>
+</body>
+</html>
